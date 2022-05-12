@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const goalSchema = mongoose.Schema({
   text: {
     type: String,
-    required: [true, 'Isi tidak boleh kosong']
+    required: [true, 'Tidak boleh kosong']
   }
 },{
   timestamps: true
