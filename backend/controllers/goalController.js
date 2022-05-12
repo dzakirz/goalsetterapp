@@ -1,71 +1,85 @@
-const asyncHandler = require("express-async-handler")
-const Goal = require('../models/goalModel')
+const asyncHandler = require('express-async-handler')
 
-const getGoals = asyncHandler(async (req,res) => {
-  const goals = await Goal.find({user:req.user.id})
+const Goal = require('../models/goalModel')
+const User = require('../models/userModel')
+
+// @desc    Get goals
+// @route   GET /api/goals
+// @access  Private
+const getGoals = asyncHandler(async (req, res) => {
+  const goals = await Goal.find({ user: req.user.id })
 
   res.status(200).json(goals)
 })
 
-const addGoal = asyncHandler(async (req, res) => {
+// @desc    Set goal
+// @route   POST /api/goals
+// @access  Private
+const setGoal = asyncHandler(async (req, res) => {
   if (!req.body.text) {
     res.status(400)
-    throw new Error("Tidak boleh kosong")
+    throw new Error('Please add a text field')
   }
 
   const goal = await Goal.create({
     text: req.body.text,
-    user: req.user.id
+    user: req.user.id,
   })
 
   res.status(200).json(goal)
 })
 
+// @desc    Update goal
+// @route   PUT /api/goals/:id
+// @access  Private
 const updateGoal = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id)
 
-  if(!goal){
+  if (!goal) {
     res.status(400)
-    throw new Error('Goal tidak ditemukan')
+    throw new Error('Goal not found')
   }
 
-  // Check User
-  if(!req.user){
+  // Check for user
+  if (!req.user) {
     res.status(401)
-    throw new errorMonitor('User tidak ditemukan')
+    throw new Error('User not found')
   }
 
-  // Make sure the login user matches the goal user
-  if(goal.user.toString() !== req.user.id){
+  // Make sure the logged in user matches the goal user
+  if (goal.user.toString() !== req.user.id) {
     res.status(401)
-    throw new Error('User tidak memiliki izin')
+    throw new Error('User not authorized')
   }
 
-  const updatedGoal = await Goal.findByIdAndUpdate(req.params.id,req.body, {
-    new:true
+  const updatedGoal = await Goal.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
   })
 
   res.status(200).json(updatedGoal)
 })
 
+// @desc    Delete goal
+// @route   DELETE /api/goals/:id
+// @access  Private
 const deleteGoal = asyncHandler(async (req, res) => {
   const goal = await Goal.findById(req.params.id)
 
   if (!goal) {
     res.status(400)
-    throw new Error("Goal tidak ditemukan")
+    throw new Error('Goal not found')
   }
 
-  // Check User
+  // Check for user
   if (!req.user) {
     res.status(401)
-    throw new errorMonitor("User tidak ditemukan")
+    throw new Error('User not found')
   }
 
-  // Make sure the login user matches the goal user
+  // Make sure the logged in user matches the goal user
   if (goal.user.toString() !== req.user.id) {
     res.status(401)
-    throw new Error("User tidak memiliki izin'")
+    throw new Error('User not authorized')
   }
 
   await goal.remove()
@@ -75,7 +89,7 @@ const deleteGoal = asyncHandler(async (req, res) => {
 
 module.exports = {
   getGoals,
-  addGoal,
+  setGoal,
   updateGoal,
   deleteGoal,
 }
